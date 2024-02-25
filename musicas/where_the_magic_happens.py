@@ -1,39 +1,43 @@
 import pandas as pd
+import json
+
 
 class deep_magic:
-  def __init__(self) -> None:
-    #iniciar variáveis globais
-    self.musicas = {'Lentas': [],
-               'Rapidas': []}
+    def __init__(self) -> None:
+        # iniciar variáveis globais
+        self.musicas = pd.DataFrame()
+        self.string = ''
+
+    def tinker_bell(self, file=''):
+        self.musicas = pd.read_excel(file)
+
+        colunas = ['Andamento']
+
+        for coluna in colunas:
+            if coluna not in self.musicas.columns:
+                raise KeyError(
+                    f'A coluna {coluna} não foi encontrada no arquivo Excel fornecido')
+
+    def matilda(self, rapidas=1, lentas=2):
+        # Selecionar as musicas aleatoriamente com base no andamento e salvar em musicas
+        df_lento = self.musicas[self.musicas['Andamento']
+                                == 'Lenta'].sample(lentas)
+        df_rapido = self.musicas[self.musicas['Andamento']
+                                 == 'Rápida'].sample(rapidas)
+        # Concatenando os dois DataFrames
+        musicas_selecionadas = pd.concat(
+            [df_lento, df_rapido]).reset_index()
         
+        for idx, row in musicas_selecionadas.iterrows():
+            for coluna in musicas_selecionadas.columns.tolist():
+                if coluna != 'index':
+                    self.string += f'{coluna} - {row[coluna]}\n'
+            self.string += '\n'
 
-  def tinker_bell(self, file=''):
-  
-    musicas = pd.read_excel(file)
-    #Abrir arquivo excel das músicas e separar por andamento
-    musicas_por_andamento = musicas.groupby('Andamento')
-    self.musicas['Lentas'] = musicas_por_andamento.get_group('Lenta')
-    self.musicas['Rápidas'] = musicas_por_andamento.get_group('Rápida')      
+        self.string = self.string.replace('nan', '')
 
 
-  def matilda(self, rapidas = 1, lentas = 2):
-    #Selecionar as musicas aleatoriamente com base no andamento e salvar em musicas
-    Musicas_Lentas = self.musicas['Lentas'].sample(n = lentas)
-    Musicas_Rapidas = self.musicas['Rápidas'].sample(n = rapidas)
-    print(type(Musicas_Rapidas))
-    self.musicas_escolhidas = pd.concat({Musicas_Lentas, Musicas_Rapidas})
-    print(self.musicas_escolhidas)
-
-  
-    # musica_escolhida = {
-    #         'Lenta': random.sample(self.musicas['Lenta'], lentas),
-    #         'Rapida': random.sample(self.musicas['Rapida'], rapidas)}
-    # print("Música Escolhida:")
-    # print("Lenta:", musica_escolhida['Lenta'])
-    # print("Rápida:", musica_escolhida['Rapida'])
-    # pass
-
-x = deep_magic()
-x.tinker_bell('musicas.xlsx')
-x.matilda()
-
+if __name__ == '__main__':
+    x = deep_magic()
+    x.tinker_bell('musicas.xlsx')
+    x.matilda()
