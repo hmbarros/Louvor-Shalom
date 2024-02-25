@@ -34,7 +34,7 @@ class deep_magic:
                     self.string += f'{coluna} - {row[coluna]}\n'
             self.string += '\n'
 
-        self.string = self.string.replace('nan', '')
+        self.string = self.string.replace(' nan', '')
 
 
 if __name__ == '__main__':

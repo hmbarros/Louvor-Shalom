@@ -16,14 +16,15 @@ else:
 # Adicione o caminho para o arquivo de imagem do logo
 path = getattr(sys, '_MEIPASS', os.getcwd())
 
-logo_Shalom = os.path.join(bundle_dir, path+'\\Logo_Shalom-verde-mini.png')
-logo_IPB = os.path.join(bundle_dir, path+'\\Logo-ipb-verde-mini.png')
+logo_Shalom = os.path.join(bundle_dir, path+'\\Logo_Shalom-verde.png')
+logo_IPB = os.path.join(bundle_dir, path+'\\Logo-ipb-verde.png')
 
-sg.set_global_icon(os.path.join(bundle_dir, path+'\\IPBfav.ico'))
+sg.set_global_icon(os.path.join(bundle_dir, path+'\\Sarça-IPB.ico'))
 
 bf = ('Montserrat', 10, 'bold')  # Fonte do botão
 bc = ('#ffffff', '#074e2e')  # Cor do botão
 df = pd.DataFrame()
+
 
 def validar_numero(numero):
     if numero == '' or numero.isdigit():
@@ -31,17 +32,18 @@ def validar_numero(numero):
     else:
         return False
 
+
 layout = [
     # Barra de título
     [
-        sg.Column([[sg.Image(logo_Shalom)]], justification='left',
+        sg.Column([[sg.Image(logo_Shalom, subsample=10)]], justification='left',
                   expand_x=True),  # Logotipo Shalom
         sg.Column([[sg.Text('')]], expand_x=True),  # Espaço em branco
         sg.Column([[sg.Text('IPShalom - Seletor de Musicas para Louvor',
                   font=('Arial', 14, 'bold'), text_color='#074e2e')]], expand_x=True),  # Título
         sg.Column([[sg.Text('')]], justification='right',
                   expand_x=True),  # Espaço em branco
-        sg.Column([[sg.Image(logo_IPB)]],
+        sg.Column([[sg.Image(logo_IPB, subsample=45)]],
                   justification='right')  # Logotipo IPB
     ],
 
@@ -69,9 +71,11 @@ layout = [
     [sg.Text('', key='-ERROR-', font=bf, text_color='red')],
 
     # Botão Copiar e exibição de texto
-    [sg.Button('Copiar', font=bf, button_color=bc)],  # Botão Copiar
+    [sg.Button('Copiar', key='-COPY-', font=bf,
+               button_color=bc)],  # Botão Copiar
     [sg.Multiline("", size=(400, 20), key='-TEXT-',
-                  background_color='#074e2e', disabled=True)]  # Exibição de texto
+                  background_color='#074e2e', disabled=False, autoscroll=True,
+                  no_scrollbar=True,)]  # Exibição de texto
 ]
 
 window = sg.Window('IPShalom - Seletor de Musicas para Louvor', layout,
@@ -97,14 +101,18 @@ while True:
                 data = deep_magic()
                 data.tinker_bell(filename)
                 data.matilda(int(values['-Rapidas-']), int(values['-Lentas-']))
-                window.TKroot.clipboard_clear()  # Limpa o conteúdo atual da área de transferência
-                # Adiciona o texto à área de transferência
-                window.TKroot.clipboard_append(data.string)
+
                 window['-TEXT-'].update(value=data.string)
 
         # Tratando Erros
         except Exception as e:
             window['-ERROR-'].update(f"Erro: {e}")
+
+    elif event == '-COPY-':
+        window.TKroot.clipboard_clear()  # Limpa o conteúdo atual da área de transferência
+
+        # Adiciona o texto à área de transferência
+        window.TKroot.clipboard_append(values['-TEXT-'])
 
 
 window.close()
