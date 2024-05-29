@@ -1,0 +1,77 @@
+from pulp import *
+
+days = 2
+
+# Definir o problema
+prob_v = LpProblem("Alocacao_de_Musicos", LpMaximize)
+
+# Variáveis de decisão
+X = LpVariable.dicts("X", (V.index, V.columns, D.index), cat='Binary')
+
+# Função objetivo
+prob_v += lpSum([X[i][j][k] * V.loc[i, j] * LV[j] * D['Peso'][k] for i in V.index for j in V.columns for k in D.index])
+
+# Restrições
+for j in V.columns:
+    for k in D.index:
+        prob_v += lpSum([X[i][j][k] for i in V.index]) <= 1
+
+for i in V.index:
+    for k in D.index:
+        prob_v += lpSum([X[i][j][k] for j in V.columns]) <= 1
+
+for i in V.index:
+    for k in range(len(D.index) - 3):
+        prob_v += lpSum([X[i][j][D.index[k]] + X[i][j][D.index[k+1]] + X[i][j][D.index[k+2]] + X[i][j][D.index[k+2]] for j in V.columns]) <= DPM['Quantidade'][i]
+
+for i in V.index:
+    for j in V.columns:
+        for k in D.index:
+            if V.loc[i, j] == 0:
+                prob_v += X[i][j][k] == 0
+
+# Resolver o problema
+prob_v.solve()
+
+# Imprimir o status da solução
+print("Status:", LpStatus[prob_v.status])
+
+# Imprimir o valor da função objetivo
+print("Valor da função objetivo =", value(prob_v.objective))
+
+# Dicionário para armazenar os resultados_v
+resultados_v = {}
+
+# Iterar sobre cada variável de decisão
+for v in prob_v.variables():
+    if v.varValue != 0:
+        # Extrair o nome da pessoa, o instrumento e o dia
+        _, pessoa, instrumento, dia = v.name.split("_", 3)
+
+        # Se o dia ainda não está no dicionário, adicione-o
+        if dia not in resultados_v:
+            resultados_v[dia] = {}
+
+        # Adicione a pessoa e o instrumento ao dia correspondente
+        resultados_v[dia][instrumento] = pessoa
+
+df_v = pd.DataFrame(columns=V.columns, index=D.index)
+
+
+# Preencher o DataFrame com os resultados_v
+for dia in resultados_v:
+    for instrumento in resultados_v[dia]:
+        df_v.loc[dia, instrumento] = resultados_v[dia][instrumento]
+
+# # Substituir NaN por ''
+df_v = df_v.fillna('')
+
+# Convertendo os índices para o tipo datetime
+df_v.index = pd.to_datetime(df_v.index, format='%d_%m_%Y')
+
+# Formatando os índices para o formato desejado e criando um novo índice
+formatted_index = df_v.index.strftime('%d/%m/%Y')
+
+# Atribuindo o novo índice formatado ao DataFrame
+df_v.index = formatted_index
+df_v
